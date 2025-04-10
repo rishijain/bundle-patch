@@ -1,5 +1,6 @@
 require "json"
 require "open3"
+require_relative "advisory"
 
 module Bundle
   module Patch
@@ -13,7 +14,8 @@ module Bundle
           # Even if status is non-zero, it's likely due to found vulnerabilities
           begin
             parsed = JSON.parse(output)
-            parsed["results"] || []
+            # parsed["results"] || []
+            parsed["results"].map { |data| Advisory.new(data) }
           rescue JSON::ParserError => e
             abort "❌ Could not parse bundle-audit output: #{e.message}"
           end

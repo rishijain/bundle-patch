@@ -15,11 +15,18 @@ module Bundle
       else
         puts "🔒 Found #{advisories.size} vulnerabilities:"
         advisories.each do |adv|
-          gem_name    = adv["gem"]["name"]
-          gem_version = adv["gem"]["version"]
-          title       = adv["advisory"]["title"]
+          # gem_name    = adv["gem"]["name"]
+          # gem_version = adv["gem"]["version"]
+          # title       = adv["advisory"]["title"]
 
-          puts "- #{gem_name} (#{gem_version}): #{title}"
+          # puts "- #{gem_name} (#{gem_version}): #{title}"
+
+          puts "- #{adv.name} (#{adv.version}): #{adv.raw.dig("advisory", "title")}"
+          if adv.patchable?
+            puts "  ✅ Can be fixed with a patch update to #{adv.latest_patch_version}"
+          else
+            puts "  ⚠️  Not patchable (requires minor or major update)"
+          end
         end
       end
     end
