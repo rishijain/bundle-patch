@@ -5,12 +5,13 @@ require_relative "patch/bundler_audit_installer"
 require_relative "patch/audit/parser"
 require_relative "patch/gemfile_editor"
 require_relative "patch/gemfile_updater"
+require_relative "patch/config"
 
 
 
 module Bundle
   module Patch
-    def self.start
+    def self.start(config = Config.new)
       BundlerAuditInstaller.ensure_installed!
       advisories = Audit::Parser.run
 
@@ -44,30 +45,28 @@ module Bundle
           puts "- #{name} (#{current}): #{data.dig("advisory", "title")}"
           puts "  ✅ Patchable → #{best_patch}"
           patchable << { "name" => name, "required_version" => best_patch.to_s }
-          GemfileUpdater.update(gemfile_path: "Gemfile", advisories: patchable)
+          # GemfileUpdater.update(gemfile_path: "Gemfile", advisories: patchable)
         else
           puts "- #{name} (#{current}): #{data.dig("advisory", "title")}"
           puts "  ⚠️  Not patchable (requires minor or major update)"
         end
       end
 
-
-
       if patchable.any?
-        # Update Gemfile for existing vulnerable entries
-        GemfileUpdater.update(gemfile_path: "Gemfile", advisories: patchable)
-
-        # Add new entries for gems not explicitly listed
-        GemfileEditor.update!(patchable)
-
-        puts "📦 Running `bundle install`..."
-        success = system("bundle install")
-
-        if success
-          puts "✅ bundle install completed successfully"
+        if config.dry_run
+          puts "💡 Skipped bundle install (dry run)"
         else
-          puts "❌ bundle install failed. Please run it manually."
+          GemfileEditor.update!(patchable)
+          GemfileUpdater.update(gemfile_path: "Gemfile", advisories: patchable)
+          puts "📦 Running `bundle install`..."
+          success = system("bundle install")
+          if success
+            puts "✅ bundle install completed successfully"
+          else
+            puts "❌ bundle install failed. Please run it manually."
+          end
         end
+
       end
     end
 

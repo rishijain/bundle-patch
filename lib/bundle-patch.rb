@@ -1,4 +1,13 @@
-require_relative "bundle/patch"
+require "optparse"
+require "bundle/patch"
 
-# Optional: auto-run if this file is executed directly
-Bundle::Patch.start if $PROGRAM_NAME == __FILE__
+options = { dry_run: false }
+
+OptionParser.new do |opts|
+  opts.on("--dry-run", "Do not modify files or run bundle install") do
+    options[:dry_run] = true
+  end
+end.parse!
+
+config = Bundle::Patch::Config.new(dry_run: options[:dry_run])
+Bundle::Patch.start(config)
