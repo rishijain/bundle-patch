@@ -26,13 +26,13 @@ module Bundle
           in_lockfile = gem_declared_in_lockfile?(name)
 
           if in_gemfile
-            puts "🔧 Updating existing gem: #{name} to '#{version}'"
+            puts "🔧 Updating existing gem: #{name} → '#{version}'"
             updated_lines = update_version_in_lines(updated_lines, name, version)
           elsif in_lockfile
-            puts "➕ Gem #{name} is a dependency. Adding it explicitly to Gemfile with version #{version}."
+            puts "➕ Adding dependency gem: #{name} → '#{version}'"
             updated_lines << "gem '#{name}', '#{version}'\n"
           else
-            puts "⚠️ Gem #{name} not found in Gemfile or Gemfile.lock. Skipping."
+            puts "⚠️  Skipping #{name} — not found in Gemfile or Gemfile.lock."
           end
         end
 
@@ -41,7 +41,7 @@ module Bundle
       end
 
       def self.gem_declared_in_gemfile?(name, lines)
-        lines.any? { |line| line =~ /^\s*gem\s+['"]#{name}['"]/ }
+        lines.any? { |line| line.match?(/^\s*gem\s+['"]#{name}['"]/) }
       end
 
       def self.gem_declared_in_lockfile?(name)
@@ -51,10 +51,10 @@ module Bundle
 
       def self.update_version_in_lines(lines, name, version)
         lines.map do |line|
-          if line =~ /^\s*gem\s+['"]#{name}['"]/
-            parts = line.split(",").map(&:strip)
-            gem_name = parts.first
-            "#{gem_name}, '#{version}'\n"
+          if line.match?(/^\s*gem\s+['"]#{name}['"]/)
+            parts = line.strip.split(",").map(&:strip)
+            gem_declaration = parts[0]
+            "#{gem_declaration}, '#{version}'\n"
           else
             line
           end

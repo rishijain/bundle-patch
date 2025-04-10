@@ -17,12 +17,22 @@ module Bundle
 
         case mode
         when "patch"
-          from.segments[0] == to.segments[0] && from.segments[1] == to.segments[1]
+          same_major?(from, to) && same_minor?(from, to)
         when "minor"
-          from.segments[0] == to.segments[0]
+          same_major?(from, to)
         else
           true
         end
+      end
+
+      private
+
+      def same_major?(v1, v2)
+        v1.segments[0] == v2.segments[0]
+      end
+
+      def same_minor?(v1, v2)
+        v1.segments[1] == v2.segments[1]
       end
     end
   end
