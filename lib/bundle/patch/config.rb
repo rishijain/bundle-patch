@@ -2,11 +2,12 @@
 module Bundle
   module Patch
     class Config
-      attr_reader :dry_run, :mode
+      attr_reader :dry_run, :mode, :skip_bundle_install
 
-      def initialize(dry_run: false, mode: "patch")
+      def initialize(dry_run: false, mode: "patch", skip_bundle_install: false)
         @dry_run = dry_run
         @mode = mode
+        @skip_bundle_install = skip_bundle_install
       end
 
       def allow_update?(from_version, to_version)

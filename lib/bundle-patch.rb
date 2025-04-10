@@ -14,6 +14,10 @@ OptionParser.new do |opts|
     options[:dry_run] = true
   end
 
+  opts.on("--skip-bundle-install", "Update Gemfile but skip running bundle install") do
+    options[:skip_bundle_install] = true
+  end
+
   opts.on("--mode=MODE", "Update mode: patch (default), minor, all") do |mode|
     allowed = %w[patch minor all]
     if allowed.include?(mode)
@@ -27,7 +31,8 @@ end.parse!
 
 config = Bundle::Patch::Config.new(
   dry_run: options[:dry_run],
-  mode: options[:mode]
+  mode: options[:mode],
+  skip_bundle_install: options[:skip_bundle_install]
 )
 
 Bundle::Patch.start(config)

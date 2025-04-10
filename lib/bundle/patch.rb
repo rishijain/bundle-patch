@@ -62,6 +62,10 @@ module Bundle
       if patchable.any?
         if config.dry_run
           puts "💡 Skipped Gemfile update and bundle install (dry run)"
+        elsif config.skip_bundle_install
+          puts "💡 Skipped bundle install (per --skip-bundle-install)"
+          GemfileEditor.update!(patchable)
+          GemfileUpdater.update(gemfile_path: "Gemfile", advisories: patchable)
         else
           GemfileEditor.update!(patchable)
           GemfileUpdater.update(gemfile_path: "Gemfile", advisories: patchable)
