@@ -30,7 +30,7 @@ module Bundle
             updated_lines = update_version_in_lines(updated_lines, name, version)
           elsif in_lockfile
             puts "➕ Adding dependency gem: #{name} → '#{version}'"
-            updated_lines << "gem '#{name}', '#{version}'\n"
+            updated_lines << "gem \"#{name}\", \"#{version}\"\n"
           else
             puts "⚠️  Skipping #{name} — not found in Gemfile or Gemfile.lock."
           end

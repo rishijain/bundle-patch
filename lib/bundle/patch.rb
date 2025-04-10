@@ -22,43 +22,40 @@ module Bundle
       puts "🔒 Found #{advisories.size} vulnerabilities:"
       patchable = []
 
-      advisories.each do |adv|
-        data = adv.to_h
-        name = data.dig("gem", "name")
-        current = data.dig("gem", "version")
-        patched_versions = data.dig("advisory", "patched_versions")
-        title = data.dig("advisory", "title")
-
-        next unless name && current && patched_versions
-
+      advisories.group_by { |adv| adv.to_h.dig("gem", "name") }.each do |name, gem_advisories|
+        current = gem_advisories.first.to_h.dig("gem", "version")
         current_version = Gem::Version.new(current)
 
-        candidates = patched_versions
-          .map { |req| Gem::Requirement.new(req) rescue nil }
-          .compact
+        # Collect all requirements from advisories
+        all_requirements = gem_advisories.flat_map do |adv|
+          adv.to_h.dig("advisory", "patched_versions").map do |req|
+            Gem::Requirement.new(req) rescue nil
+          end
+        end.compact
+
+        # Find versions that satisfy all requirements
+        candidate_versions = all_requirements
           .map { |req| best_version_matching(req) }
           .compact
+          .uniq
+          .select { |v| all_requirements.all? { |r| r.satisfied_by?(v) } }
+          .select { |v| config.allow_update?(current_version, v) }
+          .sort
 
-        allowed = candidates.select { |v| config.allow_update?(current_version, v) }
-
-        if allowed.any?
-          best_patch = allowed.min
-          puts "- #{name} (#{current}): #{title}"
+        if candidate_versions.any?
+          best_patch = candidate_versions.first
+          title_list = gem_advisories.map { |a| a.to_h.dig("advisory", "title") }.uniq
+          puts "- #{name} (#{current}):"
+          title_list.each { |t| puts "  • #{t}" }
           puts "  ✅ Patchable → #{best_patch}"
+
           patchable << { "name" => name, "required_version" => best_patch.to_s }
         else
-          puts "- #{name} (#{current}): #{title}"
-          puts "  ⚠️  Not patchable in '#{config.mode}' mode"
-          if candidates.any?
-            puts "     Available patched versions:"
-            candidates.each do |v|
-              allowed = config.allow_update?(current_version, v)
-              reason = allowed ? "✔️ allowed" : "❌ rejected"
-              puts "       - #{v} (#{reason})"
-            end
-          else
-            puts "     No valid patched versions found in advisory"
+          puts "- #{name} (#{current}):"
+          gem_advisories.each do |adv|
+            puts "  • #{adv.to_h.dig("advisory", "title")}"
           end
+          puts "  ⚠️  Not patchable (no version satisfies all advisories in current mode)"
         end
       end
 
