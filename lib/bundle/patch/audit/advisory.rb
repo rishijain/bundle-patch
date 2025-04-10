@@ -30,6 +30,10 @@ module Bundle
               .max
           end
         end
+
+        def to_h
+          @raw
+        end
       end
     end
   end
