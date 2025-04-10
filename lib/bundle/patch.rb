@@ -38,7 +38,7 @@ module Bundle
           .compact
           .map { |req| best_version_matching(req) }
           .compact
-          .select { |v| same_major?(v, current_version) }
+          .select { |v| config.allow_update?(current_version, v) }
           .min
 
         if best_patch
