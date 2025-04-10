@@ -1,39 +1,82 @@
-# Bundle::Patch
+# 🔒 bundle-patch
 
-TODO: Delete this and the text below, and describe your gem
+A command-line tool to **automatically patch vulnerable gems** in your Gemfile using [`bundler-audit`](https://github.com/rubysec/bundler-audit) under the hood.
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/bundle/patch`. To experiment with that code, run `bin/console` for an interactive prompt.
+It parses audit output, finds the **best patchable version** for each vulnerable gem, and updates your Gemfile accordingly.
 
-## Installation
+---
 
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
+## ✨ Features
 
-Install the gem and add to the application's Gemfile by executing:
+- Runs `bundle audit` and parses vulnerabilities
+- Computes the minimal patchable version required
+- Updates your `Gemfile` (and optionally runs `bundle install`)
+- Supports patch/minor/major upgrade strategies
+- Handles indirect dependencies by explicitly adding them
+- Has a dry-run mode
+
+---
+
+## 💡 Example
 
 ```bash
-bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+bundle-patch --mode=minor
 ```
 
-If bundler is not being used to manage dependencies, install the gem by executing:
+Example output
+
+```
+🔍 Running `bundle-audit check --format json`...
+🔒 Found 2 vulnerabilities:
+- sidekiq (5.2.10): sidekiq Denial of Service vulnerability
+  ✅ Patchable → 6.5.10
+- actionpack (6.1.4.1): XSS vulnerability
+  ✅ Patchable → 6.1.7.7
+📝 Backing up Gemfile to Gemfile.bak...
+🔧 Updating existing gem: actionpack to '6.1.7.7'
+➕ Gem sidekiq is a dependency. Adding it explicitly to Gemfile with version 6.5.10.
+✅ Gemfile updated!
+📦 Running `bundle install`...
+✅ bundle install completed successfully
+```
+
+## ⚙️ Options
+
+| Option         | Description                                                               |
+| -------------- | ------------------------------------------------------------------------- |
+| `--mode=patch` | Only allow patch-level updates (default)                                  |
+| `--mode=minor` | Allow minor version updates                                               |
+| `--mode=all`   | Allow all updates including major versions                                |
+| `--dry-run`    | Only print what would be changed, don’t touch the Gemfile or install gems |
+| `--no-install` | Modify the Gemfile, but skip `bundle install`                             |
+
+## 📦 Installation
+
+Add this gem to your system:
 
 ```bash
-gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+gem install bundle-patch
 ```
 
-## Usage
+Or add it to your project's Gemfile for use in development:
 
-TODO: Write usage instructions here
+```bash
+# Gemfile
+group :development do
+  gem 'bundle-patch'
+end
+```
 
-## Development
+And then:
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+```
+bundle install
+```
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+## 🧼 How it works
 
-## Contributing
-
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/bundle-patch.
-
-## License
-
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+1. Runs `bundle audit check --format json`
+2. Groups advisories by gem
+3. Determines the best patchable version for each gem based on `--mode`
+4. Ensures the gem is either updated or explicitly added to the `Gemfile`
+5. Optionally runs `bundle install` (unless `--no-install` or `--dry-run` is used)
