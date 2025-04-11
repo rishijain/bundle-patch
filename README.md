@@ -42,13 +42,13 @@ Example output
 
 ## ⚙️ Options
 
-| Option         | Description                                                               |
-| -------------- | ------------------------------------------------------------------------- |
-| `--mode=patch` | Only allow patch-level updates (default)                                  |
-| `--mode=minor` | Allow minor version updates                                               |
-| `--mode=all`   | Allow all updates including major versions                                |
-| `--dry-run`    | Only print what would be changed, don’t touch the Gemfile or install gems |
-| `--no-install` | Modify the Gemfile, but skip `bundle install`                             |
+| Option                  | Description                                                               |
+| ----------------------- | ------------------------------------------------------------------------- |
+| `--mode=patch`          | Only allow patch-level updates (default)                                  |
+| `--mode=minor`          | Allow minor version updates                                               |
+| `--mode=all`            | Allow all updates including major versions                                |
+| `--dry-run`             | Only print what would be changed, don’t touch the Gemfile or install gems |
+| `--skip_bundle_install` | Modify the Gemfile, but skip `bundle install`                             |
 
 ## 📦 Installation
 
@@ -79,4 +79,4 @@ bundle install
 2. Groups advisories by gem
 3. Determines the best patchable version for each gem based on `--mode`
 4. Ensures the gem is either updated or explicitly added to the `Gemfile`
-5. Optionally runs `bundle install` (unless `--no-install` or `--dry-run` is used)
+5. Optionally runs `bundle install` (unless `--skip_bundle_install` or `--dry-run` is used)
