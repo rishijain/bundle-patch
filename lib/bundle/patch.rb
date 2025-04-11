@@ -38,7 +38,6 @@ module Bundle
           .map { |req| best_version_matching(req) }
           .compact
           .uniq
-          .select { |v| all_requirements.all? { |r| r.satisfied_by?(v) } }
           .select { |v| config.allow_update?(current_version, v) }
           .sort
 
