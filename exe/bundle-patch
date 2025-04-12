@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+require "bundle/patch"
+require "bundle/patch/config"
+
+config = Bundle::Patch::Config.from_argv(ARGV)
+Bundle::Patch.start(config)
