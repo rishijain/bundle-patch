@@ -1,4 +1,6 @@
 # lib/bundle/patch/config.rb
+require "optparse"
+
 module Bundle
   module Patch
     class Config
@@ -8,6 +10,35 @@ module Bundle
         @dry_run = dry_run
         @mode = mode
         @skip_bundle_install = skip_bundle_install
+      end
+
+      def self.from_argv(argv)
+        options = {
+          dry_run: false,
+          skip_bundle_install: false,
+          mode: "patch"
+        }
+
+        OptionParser.new do |opts|
+          opts.banner = "Usage: bundle-patch [options]"
+
+          opts.on("--dry-run", "Print what would be done, but don't change anything") do
+            options[:dry_run] = true
+          end
+
+          opts.on("--skip-bundle-install", "Skip running `bundle install` after patching") do
+            options[:skip_bundle_install] = true
+          end
+
+          opts.on("--mode=MODE", "Update mode: patch (default), minor, or all") do |mode|
+            unless %w[patch minor all].include?(mode)
+              raise OptionParser::InvalidArgument, "Invalid mode: #{mode}"
+            end
+            options[:mode] = mode
+          end
+        end.parse!(argv)
+
+        new(**options)
       end
 
       def allow_update?(from_version, to_version)
