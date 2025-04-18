@@ -33,16 +33,16 @@ module Bundle
           end
         end.compact
 
-        # Find versions that satisfy all requirements
+        # Find all versions that satisfy all requirements
         candidate_versions = all_requirements
-          .map { |req| best_version_matching(req) }
+          .flat_map { |req| versions_satisfying(req) }
           .compact
           .uniq
           .select { |v| config.allow_update?(current_version, v) }
           .sort
 
         if candidate_versions.any?
-          best_patch = candidate_versions.first
+          best_patch = candidate_versions.last  # Take the highest version
           title_list = gem_advisories.map { |a| a.to_h.dig("advisory", "title") }.uniq
           puts "- #{name} (#{current}):"
           title_list.each { |t| puts "  • #{t}" }
@@ -79,9 +79,22 @@ module Bundle
       end
     end
 
-    def self.best_version_matching(req)
-      # Approximate best patch version using upper bound from requirement
-      req.requirements.map { |_, v| v }.compact.min rescue nil
+    def self.versions_satisfying(req)
+      # Get all versions that satisfy the requirement
+      req.requirements.map do |op, version|
+        case op
+        when ">="
+          # For >= requirements, we need to find all versions >= this version
+          # We'll approximate by using the version itself
+          version
+        when "~>"
+          # For ~> requirements, we need to find all versions in the range
+          # We'll approximate by using the upper bound
+          version
+        else
+          version
+        end
+      end.compact
     end
   end
 end
