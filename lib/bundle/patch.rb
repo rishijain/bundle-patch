@@ -2,7 +2,6 @@
 # frozen_string_literal: true
 
 require_relative "patch/version"
-require_relative "patch/bundler_audit_installer"
 require_relative "patch/audit/parser"
 require_relative "patch/gemfile_editor"
 require_relative "patch/gemfile_updater"
@@ -11,7 +10,6 @@ require_relative "patch/config"
 module Bundle
   module Patch
     def self.start(config = Config.new)
-      BundlerAuditInstaller.ensure_installed!
       advisories = Audit::Parser.run
 
       if advisories.empty?

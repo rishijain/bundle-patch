@@ -2,7 +2,6 @@
 
 require "test_helper"
 require "stringio"
-require_relative "../../lib/bundle/patch/bundler_audit_installer"
 require_relative "../../lib/bundle/patch/audit/parser"
 require_relative "../../lib/bundle/patch/gemfile_editor"
 require_relative "../../lib/bundle/patch/gemfile_updater"
@@ -23,12 +22,10 @@ class Bundle::TestPatch < Minitest::Test
   end
 
   def test_start_with_no_vulnerabilities
-    # Mock BundlerAuditInstaller and Audit::Parser
-    Bundle::Patch::BundlerAuditInstaller.stub(:ensure_installed!, nil) do
-      Bundle::Patch::Audit::Parser.stub(:run, []) do
-        Bundle::Patch.start(@config)
-        assert_equal "🎉 No vulnerabilities found!\n", $stdout.string
-      end
+    # Mock Audit::Parser
+    Bundle::Patch::Audit::Parser.stub(:run, []) do
+      Bundle::Patch.start(@config)
+      assert_equal "🎉 No vulnerabilities found!\n", $stdout.string
     end
   end
 
@@ -38,15 +35,13 @@ class Bundle::TestPatch < Minitest::Test
     ]
     config = Bundle::Patch::Config.new(dry_run: true)
 
-    Bundle::Patch::BundlerAuditInstaller.stub(:ensure_installed!, nil) do
-      Bundle::Patch::Audit::Parser.stub(:run, advisories) do
-        Bundle::Patch.start(config)
-        output = $stdout.string
-        assert_includes output, "🔒 Found 1 vulnerabilities:"
-        assert_includes output, "- test-gem (1.0.0):"
-        assert_includes output, "✅ Patchable → 1.0.1"
-        assert_includes output, "💡 Skipped Gemfile update and bundle install (dry run)"
-      end
+    Bundle::Patch::Audit::Parser.stub(:run, advisories) do
+      Bundle::Patch.start(config)
+      output = $stdout.string
+      assert_includes output, "🔒 Found 1 vulnerabilities:"
+      assert_includes output, "- test-gem (1.0.0):"
+      assert_includes output, "✅ Patchable → 1.0.1"
+      assert_includes output, "💡 Skipped Gemfile update and bundle install (dry run)"
     end
   end
 
@@ -56,15 +51,13 @@ class Bundle::TestPatch < Minitest::Test
     ]
     config = Bundle::Patch::Config.new(skip_bundle_install: true)
 
-    Bundle::Patch::BundlerAuditInstaller.stub(:ensure_installed!, nil) do
-      Bundle::Patch::Audit::Parser.stub(:run, advisories) do
-        Bundle::Patch::GemfileEditor.stub(:update!, nil) do
-          Bundle::Patch::GemfileUpdater.stub(:update, nil) do
-            Bundle::Patch.start(config)
-            output = $stdout.string
-            assert_includes output, "🔒 Found 1 vulnerabilities:"
-            assert_includes output, "💡 Skipped bundle install (per --skip-bundle-install)"
-          end
+    Bundle::Patch::Audit::Parser.stub(:run, advisories) do
+      Bundle::Patch::GemfileEditor.stub(:update!, nil) do
+        Bundle::Patch::GemfileUpdater.stub(:update, nil) do
+          Bundle::Patch.start(config)
+          output = $stdout.string
+          assert_includes output, "🔒 Found 1 vulnerabilities:"
+          assert_includes output, "💡 Skipped bundle install (per --skip-bundle-install)"
         end
       end
     end
@@ -75,17 +68,15 @@ class Bundle::TestPatch < Minitest::Test
       mock_advisory("test-gem", "1.0.0", [">= 1.0.1"])
     ]
 
-    Bundle::Patch::BundlerAuditInstaller.stub(:ensure_installed!, nil) do
-      Bundle::Patch::Audit::Parser.stub(:run, advisories) do
-        Bundle::Patch::GemfileEditor.stub(:update!, nil) do
-          Bundle::Patch::GemfileUpdater.stub(:update, nil) do
-            Kernel.stub(:system, true) do
-              Bundle::Patch.start(@config)
-              output = $stdout.string
-              assert_includes output, "🔒 Found 1 vulnerabilities:"
-              assert_includes output, "📦 Running `bundle install`..."
-              assert_includes output, "✅ bundle install completed successfully"
-            end
+    Bundle::Patch::Audit::Parser.stub(:run, advisories) do
+      Bundle::Patch::GemfileEditor.stub(:update!, nil) do
+        Bundle::Patch::GemfileUpdater.stub(:update, nil) do
+          Kernel.stub(:system, true) do
+            Bundle::Patch.start(@config)
+            output = $stdout.string
+            assert_includes output, "🔒 Found 1 vulnerabilities:"
+            assert_includes output, "📦 Running `bundle install`..."
+            assert_includes output, "✅ bundle install completed successfully"
           end
         end
       end
@@ -98,17 +89,15 @@ class Bundle::TestPatch < Minitest::Test
       mock_advisory("test-gem2", "2.0.0", [">= 2.0.1"])
     ]
 
-    Bundle::Patch::BundlerAuditInstaller.stub(:ensure_installed!, nil) do
-      Bundle::Patch::Audit::Parser.stub(:run, advisories) do
-        Bundle::Patch::GemfileEditor.stub(:update!, nil) do
-          Bundle::Patch::GemfileUpdater.stub(:update, nil) do
-            Kernel.stub(:system, true) do
-              Bundle::Patch.start(@config)
-              output = $stdout.string
-              assert_includes output, "🔒 Found 2 vulnerabilities:"
-              assert_includes output, "- test-gem1 (1.0.0):"
-              assert_includes output, "- test-gem2 (2.0.0):"
-            end
+    Bundle::Patch::Audit::Parser.stub(:run, advisories) do
+      Bundle::Patch::GemfileEditor.stub(:update!, nil) do
+        Bundle::Patch::GemfileUpdater.stub(:update, nil) do
+          Kernel.stub(:system, true) do
+            Bundle::Patch.start(@config)
+            output = $stdout.string
+            assert_includes output, "🔒 Found 2 vulnerabilities:"
+            assert_includes output, "- test-gem1 (1.0.0):"
+            assert_includes output, "- test-gem2 (2.0.0):"
           end
         end
       end
@@ -121,12 +110,10 @@ class Bundle::TestPatch < Minitest::Test
     ]
     config = Bundle::Patch::Config.new(mode: "patch")
 
-    Bundle::Patch::BundlerAuditInstaller.stub(:ensure_installed!, nil) do
-      Bundle::Patch::Audit::Parser.stub(:run, advisories) do
-        Bundle::Patch.start(config)
-        output = $stdout.string
-        assert_includes output, "⚠️  Not patchable (no version satisfies all advisories in current mode)"
-      end
+    Bundle::Patch::Audit::Parser.stub(:run, advisories) do
+      Bundle::Patch.start(config)
+      output = $stdout.string
+      assert_includes output, "⚠️  Not patchable (no version satisfies all advisories in current mode)"
     end
   end
 
