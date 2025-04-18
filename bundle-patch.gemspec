@@ -20,6 +20,7 @@ Gem::Specification.new do |spec|
   spec.metadata["changelog_uri"]     = "https://github.com/rishijain/bundle-patch/blob/main/CHANGELOG.md"
 
   spec.add_runtime_dependency "bundler-audit", "~> 0.9"
+  spec.add_development_dependency "minitest", "~> 5.0"
 
   gemspec = File.basename(__FILE__)
   spec.files = IO.popen(%w[git ls-files -z], chdir: __dir__, err: IO::NULL) do |ls|

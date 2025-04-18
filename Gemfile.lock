@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    bundle-patch (0.1.0)
+    bundle-patch (0.3.0)
       bundler-audit (~> 0.9)
 
 GEM
