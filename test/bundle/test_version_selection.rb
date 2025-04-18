@@ -13,7 +13,7 @@ class Bundle::TestVersionSelection < Minitest::Test
     ]
     config = Bundle::Patch::Config.new(mode: "patch")
     
-    result = process_advisories("test-gem", advisories, config)
+    result = Bundle::Patch.process_gem_advisories("test-gem", advisories, config)
     
     assert_equal "1.0.1", result[:required_version]
   end
@@ -25,7 +25,7 @@ class Bundle::TestVersionSelection < Minitest::Test
     ]
     config = Bundle::Patch::Config.new(mode: "patch")
     
-    result = process_advisories("test-gem", advisories, config)
+    result = Bundle::Patch.process_gem_advisories("test-gem", advisories, config)
     
     assert_equal "1.0.2", result[:required_version]
   end
@@ -37,7 +37,7 @@ class Bundle::TestVersionSelection < Minitest::Test
     ]
     config = Bundle::Patch::Config.new(mode: "minor")
     
-    result = process_advisories("test-gem", advisories, config)
+    result = Bundle::Patch.process_gem_advisories("test-gem", advisories, config)
     
     assert_equal "1.2.0", result[:required_version]
   end
@@ -49,7 +49,7 @@ class Bundle::TestVersionSelection < Minitest::Test
     ]
     config = Bundle::Patch::Config.new(mode: "all")
     
-    result = process_advisories("test-gem", advisories, config)
+    result = Bundle::Patch.process_gem_advisories("test-gem", advisories, config)
     
     assert_equal "2.1.0", result[:required_version]
   end
@@ -61,7 +61,7 @@ class Bundle::TestVersionSelection < Minitest::Test
     ]
     config = Bundle::Patch::Config.new(mode: "patch")
     
-    result = process_advisories("test-gem", advisories, config)
+    result = Bundle::Patch.process_gem_advisories("test-gem", advisories, config)
     
     assert_equal "1.0.2", result[:required_version]
   end
@@ -76,7 +76,7 @@ class Bundle::TestVersionSelection < Minitest::Test
     ]
     config = Bundle::Patch::Config.new(mode: "minor")
     
-    result = process_advisories("rexml", advisories, config)
+    result = Bundle::Patch.process_gem_advisories("rexml", advisories, config)
     
     assert_equal "3.3.9", result[:required_version]
   end
@@ -87,7 +87,7 @@ class Bundle::TestVersionSelection < Minitest::Test
     ]
     config = Bundle::Patch::Config.new(mode: "patch")
     
-    result = process_advisories("test-gem", advisories, config)
+    result = Bundle::Patch.process_gem_advisories("test-gem", advisories, config)
     
     assert_nil result
   end
@@ -105,30 +105,5 @@ class Bundle::TestVersionSelection < Minitest::Test
         "patched_versions" => patched_versions
       }
     }
-  end
-
-  def process_advisories(name, advisories, config)
-    current = advisories.first["gem"]["version"]
-    current_version = Gem::Version.new(current)
-
-    all_requirements = advisories.flat_map do |adv|
-      adv["advisory"]["patched_versions"].map do |req|
-        Gem::Requirement.new(req) rescue nil
-      end
-    end.compact
-
-    candidate_versions = all_requirements
-      .flat_map { |req| Bundle::Patch.versions_satisfying(req) }
-      .compact
-      .uniq
-      .select { |v| config.allow_update?(current_version, v) }
-      .sort
-
-    if candidate_versions.any?
-      {
-        name: name,
-        required_version: candidate_versions.last.to_s
-      }
-    end
   end
 end 
